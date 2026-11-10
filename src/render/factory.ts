@@ -1,4 +1,7 @@
-import { Application, Container, Graphics } from "pixi.js";
+import { GAME_SECONDS_PER_TICK } from "../core/time";
+import type { GameState } from "../core/model";
+import { machines } from "../data/catalog";
+import { Application, Container, Graphics, Text } from "pixi.js";
 export interface FactoryRenderer {
   init(
     host: HTMLElement,
@@ -7,9 +10,16 @@ export interface FactoryRenderer {
   resetCamera(): void;
   zoom(factor: number): void;
   pan(dx: number, dy: number): void;
+  update(state: GameState): void;
   destroy(): void;
 }
 export class PixiFactory implements FactoryRenderer {
+  private labels = new Container();
+  private labelRevision = "";
+  private scene = new Graphics();
+  private actors = new Graphics();
+  private ready = false;
+  private signature = "";
   private app = new Application();
   private world = new Container();
   private selection = new Graphics();
@@ -45,7 +55,14 @@ export class PixiFactory implements FactoryRenderer {
     for (let y = 0; y <= 700; y += 10) grid.moveTo(0, y).lineTo(1000, y);
     grid.stroke({ color: 0x36505a, width: 0.5 });
     grid.rect(0, 0, 1000, 700).stroke({ color: 0x75b8ae, width: 2 });
-    this.world.addChild(grid, this.selection);
+    this.world.addChild(
+      grid,
+      this.scene,
+      this.labels,
+      this.actors,
+      this.selection,
+    );
+    this.ready = true;
     this.resetCamera();
     this.observer = new ResizeObserver(() => {
       this.app.renderer.resize(host.clientWidth, host.clientHeight);
@@ -114,6 +131,97 @@ export class PixiFactory implements FactoryRenderer {
     };
     host.addEventListener("wheel", wheel, { passive: false });
     this.cleanup.push(() => host.removeEventListener("wheel", wheel));
+  }
+  update(state: GameState): void {
+    if (!this.ready) return;
+    const signature = JSON.stringify([
+      state.factory.revision,
+      state.factory.hall,
+      state.world.owned,
+      state.machines.map((m) => [
+        m.id,
+        m.status,
+        m.x,
+        m.y,
+        m.orientation,
+        m.definitionId,
+      ]),
+      state.factory.machines.map((m) => m.power),
+    ]);
+    if (signature !== this.signature) {
+      this.signature = signature;
+      this.scene.clear();
+      const h = state.factory.hall;
+      if (h)
+        this.scene
+          .rect(h.x * 10, h.y * 10, h.width * 10, h.height * 10)
+          .fill({ color: 0x527180, alpha: 0.2 })
+          .stroke({ color: 0xa0b7be, width: 2 });
+      this.scene.rect(10, 10, 25, 25).fill(0xd3aa63);
+      for (const m of state.machines) {
+        const d = machines.find((d) => d.id === m.definitionId)!;
+        const rotated = m.orientation === 90 || m.orientation === 270;
+        const w = rotated ? d.footprint.height : d.footprint.width,
+          hh = rotated ? d.footprint.width : d.footprint.height;
+        const production = state.factory.machines.find((x) => x.id === m.id)!;
+        if (production.powerPath.length) {
+          this.scene.moveTo(25, 25);
+          for (const p of production.powerPath)
+            this.scene.lineTo(p.x * 10 + 5, p.y * 10 + 5);
+          this.scene.stroke({ color: 0xd5a946, width: 1 });
+        }
+        this.scene
+          .rect(m.x * 10, m.y * 10, w * 10, hh * 10)
+          .fill(
+            m.status === "running"
+              ? 0x42b898
+              : m.status === "blocked"
+                ? 0xc8784a
+                : 0x58758b,
+          )
+          .stroke({ color: 0xb6cdd5, width: 1 });
+        this.scene.circle(m.x * 10 - 5, m.y * 10 + 5, 3).fill(0xe9c779);
+      }
+    }
+    const labelKey = JSON.stringify(
+      state.machines.map((m) => [m.id, m.x, m.y, m.definitionId]),
+    );
+    if (this.labelRevision !== labelKey) {
+      this.labelRevision = labelKey;
+      this.labels.removeChildren().forEach((c) => c.destroy());
+      for (const m of state.machines) {
+        const label = new Text({
+          text: m.definitionId,
+          style: { fontFamily: "sans-serif", fontSize: 9, fill: 0xffffff },
+        });
+        label.position.set(m.x * 10 + 3, m.y * 10 + 3);
+        this.labels.addChild(label);
+      }
+    }
+    this.actors.clear();
+    for (const task of state.factory.transfers) {
+      if (task.started === null || task.due === null) continue;
+      const progress = Math.max(
+        0,
+        Math.min(
+          1,
+          (state.tick * GAME_SECONDS_PER_TICK - task.started) /
+            (task.due - task.started),
+        ),
+      );
+      const position = progress * (task.path.length - 1),
+        i = Math.floor(position),
+        a = task.path[i]!,
+        b = task.path[Math.min(i + 1, task.path.length - 1)]!;
+      this.actors
+        .rect(
+          (a.x + (b.x - a.x) * (position - i)) * 10,
+          (a.y + (b.y - a.y) * (position - i)) * 10,
+          7,
+          7,
+        )
+        .fill(0xf4bd55);
+    }
   }
   private zoomAt(factor: number, x: number, y: number): void {
     const old = this.world.scale.x;

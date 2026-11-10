@@ -1,45 +1,7 @@
-import { createGame } from "../core/simulation";
-import { SPEEDS, type GameState } from "../core/model";
+import type { GameState } from "../core/model";
+import { parseSave } from "./schema";
 export function decode(text: string): GameState {
-  const raw: unknown = JSON.parse(text);
-  if (!raw || typeof raw !== "object")
-    throw new Error("Neplatný formát uložené hry.");
-  const s = raw as GameState;
-  if (s.schemaVersion !== 1)
-    throw new Error("Nepodporovaná verze uložené hry.");
-  const initial = createGame();
-  if (
-    !Number.isSafeInteger(s.tick) ||
-    s.tick < 0 ||
-    !Number.isInteger(s.rngState) ||
-    s.rngState < 0 ||
-    s.rngState > 0xffffffff ||
-    !SPEEDS.includes(s.speed)
-  )
-    throw new Error("Poškozený čas nebo seed.");
-  if (
-    !s.world ||
-    s.world.width !== initial.world.width ||
-    s.world.height !== initial.world.height ||
-    s.world.owned !== false
-  )
-    throw new Error("Neplatná mapa M0.");
-  if (
-    !s.finance ||
-    Object.entries(initial.finance).some(
-      ([key, value]) => s.finance[key as keyof typeof s.finance] !== value,
-    )
-  )
-    throw new Error("Neplatné finance M0.");
-  for (const key of [
-    "machines",
-    "lots",
-    "employees",
-    "logisticsTasks",
-  ] as const)
-    if (!Array.isArray(s[key]) || s[key].length !== 0)
-      throw new Error("Save obsahuje entity nepodporované v M0.");
-  return { ...initial, tick: s.tick, rngState: s.rngState, speed: s.speed };
+  return parseSave(JSON.parse(text));
 }
 export function encode(state: GameState): string {
   const text = JSON.stringify(state);

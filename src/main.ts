@@ -1,3 +1,4 @@
+import { FactoryUI } from "./ui/factory";
 import "./style.css";
 import { FixedClock, Simulation, gameDate } from "./core/simulation";
 import { SPEEDS } from "./core/model";
@@ -6,7 +7,7 @@ import { PixiFactory, type FactoryRenderer } from "./render/factory";
 import { SaveStore, encode, decode } from "./save/storage";
 import { cs as t, money } from "./ui/text";
 const root = document.querySelector<HTMLDivElement>("#app")!;
-root.innerHTML = `<header><div class="brand">${t.title}<small>${t.subtitle}</small></div><div class="stat"><small>${t.cash}</small><strong id="cash"></strong></div><div class="stat"><small>${t.revenue} / ${t.expenses}</small><span id="income"></span></div><div class="stat"><small>${t.employees}</small><span id="workers"></span></div><div class="time"><time id="date"></time><nav id="speeds" aria-label="Rychlost simulace"></nav></div></header><div class="workspace"><aside><span class="eyebrow">${t.scope}</span><h2>${t.map}</h2><p>${t.future}</p><section><h3>${t.catalog}</h3><p class="muted">${t.balance}</p><div id="catalog"></div></section></aside><main><div class="map-heading"><div><span class="eyebrow">100 × 70 M · GRID 1 M</span><h1>${t.parcel}</h1></div><span class="badge">M0</span></div><div id="map" aria-label="Mapa továrny" tabindex="0"></div><div class="camera"><button id="minus" aria-label="Oddálit">−</button><button id="plus" aria-label="Přiblížit">+</button><button id="left" aria-label="Posunout vlevo">←</button><button id="right" aria-label="Posunout vpravo">→</button><button id="up" aria-label="Posunout nahoru">↑</button><button id="down" aria-label="Posunout dolů">↓</button><button id="center">${t.reset}</button></div><p class="map-hint">${t.hint}</p></main><aside class="right"><span class="eyebrow">${t.status}</span><h2>${t.ready}</h2><p class="notice">${t.noProduction}</p><p>${t.empty}</p><section><h3>${t.selection}</h3><strong id="selected">—</strong><p>${t.selected}</p></section><section><h3>${t.product}</h3><p>${t.bom}</p></section><section><h3>${t.investor}</h3><p id="accounts"></p></section><section class="save-controls"><button id="save">${t.save}</button><button id="load">${t.load}</button><button id="export">${t.export}</button><label class="button" for="import">${t.import}</label><input id="import" type="file" accept="application/json,.json" hidden></section><p id="message" role="status" aria-live="polite"></p></aside></div><footer><span>WEBGL · FIXED STEP 50 MS</span><span id="metrics"></span></footer>`;
+root.innerHTML = `<header><div class="brand">${t.title}<small>${t.subtitle}</small></div><div class="stat"><small>${t.cash}</small><strong id="cash"></strong></div><div class="stat"><small>${t.revenue} / ${t.expenses}</small><span id="income"></span></div><div class="stat"><small>${t.employees}</small><span id="workers"></span></div><div class="time"><time id="date"></time><nav id="speeds" aria-label="Rychlost simulace"></nav></div></header><div class="workspace"><aside><span class="eyebrow">${t.scope}</span><h2>${t.map}</h2><p>${t.future}</p><section><h3>${t.catalog}</h3><p class="muted">${t.balance}</p><div id="catalog"></div></section></aside><main><div class="map-heading"><div><span class="eyebrow">100 × 70 M · GRID 1 M</span><h1 id="parcel">${t.parcel}</h1></div><span class="badge">M1</span></div><div id="map" aria-label="Mapa továrny" tabindex="0"></div><div class="camera"><button id="minus" aria-label="Oddálit">−</button><button id="plus" aria-label="Přiblížit">+</button><button id="left" aria-label="Posunout vlevo">←</button><button id="right" aria-label="Posunout vpravo">→</button><button id="up" aria-label="Posunout nahoru">↑</button><button id="down" aria-label="Posunout dolů">↓</button><button id="center">${t.reset}</button></div><p class="map-hint">${t.hint}</p></main><aside class="right"><span class="eyebrow">${t.status}</span><h2>${t.ready}</h2><p class="notice" id="production-status">${t.noProduction}</p><p>${t.empty}</p><section><h3>${t.selection}</h3><strong id="selected">—</strong><p>${t.selected}</p></section><section><h3>${t.product}</h3><p>${t.bom}</p></section><section><h3>${t.investor}</h3><p id="accounts"></p></section><section class="save-controls"><button id="save">${t.save}</button><button id="load">${t.load}</button><button id="export">${t.export}</button><label class="button" for="import">${t.import}</label><input id="import" type="file" accept="application/json,.json" hidden></section><p id="message" role="status" aria-live="polite"></p></aside></div><footer><span>WEBGL · FIXED STEP 50 MS</span><span id="metrics"></span></footer>`;
 const el = (id: string) => document.getElementById(id)!;
 const sim = new Simulation(),
   clock = new FixedClock(),
@@ -34,8 +35,19 @@ for (const machine of machines) {
   row.append(summary, body);
   el("catalog").append(row);
 }
+const factoryUI = new FactoryUI(sim, (message) => put("message", message));
 function refresh() {
+  factoryUI.refresh();
+  renderer.update(sim.state);
+  put(
+    "parcel",
+    sim.state.world.owned ? "Vlastní výrobní závod" : "Nezakoupený pozemek",
+  );
   const s = sim.state;
+  put(
+    "production-status",
+    `V provozu: ${s.machines.filter((m) => m.status === "running").length} / ${s.machines.length} · Přepravy: ${s.factory.transfers.length} · Expedováno: ${s.factory.shipped} ks`,
+  );
   put("cash", money(s.finance.cashMinor));
   put(
     "income",
@@ -102,7 +114,7 @@ el("import").onchange = () =>
     const file = input.files?.[0];
     try {
       if (!file) return;
-      if (file.size > 1_000_000) throw new Error("Soubor je příliš velký.");
+      if (file.size > 20_000_000) throw new Error("Soubor je příliš velký.");
       const next = decode(await file.text());
       sim.state = next;
       clock.reset();
@@ -114,7 +126,11 @@ el("import").onchange = () =>
 refresh();
 async function initRenderer() {
   try {
-    await renderer.init(el("map"), (x, y) => put("selected", `[${x}, ${y}]`));
+    await renderer.init(el("map"), (x, y) => {
+      put("selected", `[${x}, ${y}]`);
+      factoryUI.select(x, y);
+    });
+    renderer.update(sim.state);
     el("plus").onclick = () => renderer.zoom(1.2);
     el("minus").onclick = () => renderer.zoom(1 / 1.2);
     el("center").onclick = () => renderer.resetCamera();
@@ -155,7 +171,7 @@ function frame(now: number) {
       refresh();
       put(
         "metrics",
-        `${t.fps} ${fps} · ${t.tick} ${tickMs.toFixed(3)} ms · ${t.entities} ${sim.state.machines.length + sim.state.employees.length + sim.state.lots.length} · ${t.tasks} ${sim.state.logisticsTasks.length}`,
+        `${t.fps} ${fps} · ${t.tick} ${tickMs.toFixed(3)} ms · ${t.entities} ${sim.state.machines.length + sim.state.employees.length + sim.state.lots.length} · ${t.tasks} ${sim.state.factory.transfers.length}`,
       );
       uiAt = now;
     }

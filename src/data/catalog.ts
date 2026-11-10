@@ -157,3 +157,14 @@ export const balance = {
   unitSaleMinor: 185000,
   unitAllocatedCostMinor: 148000,
 };
+items.push(
+  { id: "SCRAP-AL", name: "Hliníkový odpad", unit: "kg", kind: "waste" },
+  { id: "SCRAP-TUBE", name: "Odřezky trubek", unit: "m", kind: "waste" },
+);
+
+items.push({
+  id: "SPARE",
+  name: "Sada náhradních dílů",
+  unit: "ks",
+  kind: "component",
+});

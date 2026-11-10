@@ -1,6 +1,6 @@
-# Factory Empire — M0
+# Factory Empire — M1
 
-Český desktopový základ průmyslové hry podle zadání v0.1. **M0 není hratelný výrobní řetězec.** Bez backendu a vzdálených runtime API.
+Česká průmyslová hra podle zadání v0.1. **První výrobní průchod M1** navazuje na technický základ M0. M2–M6 nejsou dokončené. Bez backendu a vzdálených runtime API.
 
 ## Spuštění
 
@@ -15,14 +15,16 @@ V prohlížeči otevřete adresu vypsanou Vite. Mapu zobrazuje PixiJS s WebGL; p
 
 ## Co skutečně funguje
 
-- Nezakoupená plánovací parcela 100×70 m, 1 pole = 1 m²; výběr polí, tažení mapy, zoom kolem kurzoru a tlačítka pro pohyb/zoom/vystředění.
-- Fixed-step 50 ms, pauza/1×/2×/5×/10×; 120 sekund při 1× = jeden den. Skrytá karta čas neposouvá, dlouhé snímky mají omezený catch-up.
-- Počáteční kapitál 300 000 000 Kč, 35% investor; finance oddělují cash, výnosy/náklady a pohledávky/závazky. V M0 se bez transakcí nemění.
-- IndexedDB ruční uložení a načtení jednoho slotu, export/import JSON, runtime kontrola verze a dat. Neplatný import zachová rozehraný svět. Uložení není automatické; prohlížeč může své úložiště smazat, používejte export.
-- Katalog materiálů a zařízení, přesný verzovaný BOM FE-HX001, návrhy montážní a balicí receptury. Celý proces a chybějící parametry čekají na M1.
-- Panel skutečných FPS, času ticku a počtů entit/úloh (v prázdném světě nula).
+- WebGL mapa 100×70 m, metrová mřížka, kamera, výběr a umisťování.
+- Kapitál 300 mil. Kč; nákup pozemku, obdélníková hala, stroje, servisní mezery a průchodnost. Rotace 0/90°.
+- Pauza/1×/2×/5×/10×, seedovaná headless simulace a plánované události; 120 sekund při 1× = den.
+- Nákupy s dodáním po 4 h, agregované šarže/FIFO, rezervace a viditelné přepravy. Stroje potřebují přípojky, operátora a skutečné vstupy, výstupní buffer je omezený.
+- Vlastní výroba desek/lamel/výztuh/trubek nebo jejich nákup → čištění → montáž → externí tavidlo/CAB (2 dny) → heliový test → povrch → balení.
+- Neshodné kusy v karanténě, mzdy a energie, jednoduché poruchy a opravy.
+- Dvě jednorázové zakázky, skutečná expedice a vystavení faktury, inkaso až za 30 dní.
+- IndexedDB save v2, migrace prázdného M0 save, JSON export/import a validace rozpracovaných vazeb. Ruční ukládání, doporučený export pro zálohu.
 
-Od startu lze prohlížet mapu/katalog, přepínat čas a uložit/načíst stav. **K expedici se v M0 dojít nedá.** Žádné fiktivní stroje, výrobky, zaměstnanci či příjmy.
+Přesná zjednodušení a otevřené části v [STATUS.md](docs/STATUS.md). Návrhové ceny a spotřeby jsou **neověřené herní hodnoty**, nikoli reálné technické údaje.
 
 ## Kontroly
 
@@ -35,7 +37,7 @@ npx playwright install chromium
 npx playwright test
 ```
 
-V cloudu lze použít systémový prohlížeč: `CHROMIUM_PATH=/usr/bin/chromium npx playwright test`. Jinak se použije instalovaný Playwright Chromium. Jednotkové testy: čas/rychlosti, determinismus a PRNG continuation, čtyři herní týdny bez vytváření peněz, BOM/jmenovité kapacity, schema a IndexedDB. Browser test: WebGL canvas, pauza/zrychlení, uložení/načtení, výběr, kamera a odmítnutí neplatného importu. Neověřují výrobní T01–T10, které patří M1.
+V cloudu lze použít systémový prohlížeč: `CHROMIUM_PATH=/usr/bin/chromium npx playwright test`. Jinak se použije instalovaný Playwright Chromium. Testy pokrývají hodiny, BOM, frontu skutečných výrobních a ekonomických událostí, scénáře T01–T10 v rozsahu M1, poruchu/opravu, migraci a save/load během výroby. Browser testy ověřují mapu a základní ovládání M0 i stavbu, přípojky, operátora a obnovení závodu M1. Výrobní průchod celé zakázky je headless integrační test stejného jádra, nikoli kompletní browser click-through.
 
 ## GitHub Pages
 
@@ -50,14 +52,17 @@ První zapnutí v GitHubu:
 
 Pokud repozitář nemá Pages dostupné kvůli tarifu/viditelnosti, GitHub to uvede v Settings → Pages; dostupnost nelze předpokládat. Vite má relativní `base: './'`, takže assets fungují i pod `/gamev2/`. Build obsahuje lokální assets; offline první načtení/PWA cache není součástí M0. Uložené hry jsou vázané na prohlížeč a origin: pro přenos mezi lokální a publikovanou verzí použijte export/import JSON.
 
-## Jak M0 vyzkoušet
+## Jak vyzkoušet M1
 
-1. Otevřete hru, ověřte kapitál 300 000 000 Kč.
-2. Přetáhněte mapu, kolečkem přibližte, klikněte na pole a ověřte souřadnice vpravo.
-3. Zapněte 10×: datum a čas se posouvají rychleji. Zvolte Pauza: čas stojí.
-4. Klikněte Uložit, změňte rychlost a nechte čas plynout. Načíst obnoví uložený čas a rychlost.
-5. Exportujte JSON; soubor lze načíst přes Import JSON a následně uložit. Neplatný soubor musí zobrazit chybu a zachovat současný stav.
-6. Vlevo rozbalte katalog stroje; uvidíte jeho návrhovou cenu, půdorys a výkon. Nákup a výroba patří až M1.
+1. Zapněte pauzu. Vlevo **Koupit pozemek**, potom **Postavit halu** (výchozí obdélník 5,5,88,58).
+2. V katalogu vyberte mytí M006, montáž M007, heliový tester M011, povrch M010 a balení M012. U každého klikněte **Umístit** a pak na mapu. Nechte mezi stroji alespoň dvě volná pole.
+3. Vpravo najměte skladníka a pět operátorů. Zrušte režim umisťování, klikněte na stroj: připojte elektřinu a vzduch, přiřaďte volného operátora a spusťte jeho recepturu. Opakujte pro všech pět.
+4. Objednejte na jeden výparník: 56 desek, 27 lamel, 2 výztuhy, 1 vstupní a 1 výstupní trubku, 1 blok, 2 záslepky, 1 obal, 4 l vody, .01 l čističe, .001 m³ helia a .01 l chemie. Pro zakázku HX-001 potřebujete 10 dobrých kusů; objednejte rezervu na neshody. Čas spusťte na 10×.
+5. Za 4 herní hodiny dorazí vstupy. Skladník je převeze k mytí a následně k montáži. Jakmile jsou jádra v centrálním skladu, zadejte počet a **Odeslat jádra (2 dny)**.
+6. Po návratu pokračuje test, povrch a balení. Přijměte zakázku HX-001 a po vyrobení 10 dobrých zabalených kusů klikněte **Expedovat HX-001**. Pohledávka se inkasuje za 30 dní.
+7. Při poruše najměte údržbáře, objednejte sadu náhradních dílů a v kontextu vadného stroje klikněte Opravit. Neshodný výrobek se neopravuje automaticky.
+
+Volitelně pořiďte lis, lamelovací automat a dělení trubek a vyrábějte komponenty ze surovin. V levém panelu je rozbalovací průvodce. Pravý i levý panel lze samostatně posouvat. Uložení/načtení a JSON záloha fungují i během rozpracované výroby.
 
 ## Dokumentace
 

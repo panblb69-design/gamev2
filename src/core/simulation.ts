@@ -1,13 +1,12 @@
+import { createFactory } from "../manufacturing/model";
+import { FactoryEngine } from "../manufacturing/engine";
 import { type GameState, type Speed } from "./model";
-export const CONFIG = {
-  stepMs: 50,
-  realSecondsPerDay: 120,
-  startDateMs: Date.UTC(2026, 0, 1),
-  initialCashMinor: 30_000_000_000,
-} as const;
+import { CONFIG, GAME_SECONDS_PER_TICK } from "./time";
+export { CONFIG } from "./time";
 export function createGame(seed = 123456789): GameState {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
+    factory: createFactory(),
     tick: 0,
     rngState: seed >>> 0,
     speed: 1,
@@ -30,6 +29,9 @@ export class Simulation {
   constructor(public state: GameState = createGame()) {}
   step(): void {
     this.state.tick++;
+    new FactoryEngine(this.state).advance(
+      this.state.tick * GAME_SECONDS_PER_TICK,
+    );
   }
   setSpeed(speed: Speed): void {
     this.state.speed = speed;

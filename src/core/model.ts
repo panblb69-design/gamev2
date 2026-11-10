@@ -1,3 +1,4 @@
+import type { Factory } from "../manufacturing/model";
 export type Unit = "ks" | "kg" | "m" | "l" | "m³" | "kWh";
 export interface Quantity {
   itemId: string;
@@ -71,6 +72,7 @@ export interface InventoryLot {
   locationId: string;
   quality: "unchecked" | "good" | "quarantine" | "scrap";
   batchId: string;
+  costMinor: number;
 }
 export interface Employee {
   id: string;
@@ -99,7 +101,8 @@ export interface Finance {
 export const SPEEDS = [0, 1, 2, 5, 10] as const;
 export type Speed = (typeof SPEEDS)[number];
 export interface GameState {
-  schemaVersion: 1;
+  schemaVersion: 2;
+  factory: Factory;
   tick: number;
   rngState: number;
   speed: Speed;
