@@ -45,6 +45,9 @@ export class Simulation {
 }
 export class FixedClock {
   private accumulator = 0;
+  get fraction(): number {
+    return this.accumulator / CONFIG.stepMs;
+  }
   advance(realMs: number, simulation: Simulation): number {
     if (!Number.isFinite(realMs) || realMs < 0)
       throw new Error("Invalid frame duration");

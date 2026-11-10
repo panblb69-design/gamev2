@@ -1,4 +1,3 @@
-import { GAME_SECONDS_PER_TICK } from "../core/time";
 import type { GameState } from "../core/model";
 import { machines } from "../data/catalog";
 import { Application, Container, Graphics, Text } from "pixi.js";
@@ -11,6 +10,7 @@ export interface FactoryRenderer {
   zoom(factor: number): void;
   pan(dx: number, dy: number): void;
   update(state: GameState): void;
+  animate(state: GameState, time: number): void;
   destroy(): void;
 }
 export class PixiFactory implements FactoryRenderer {
@@ -198,16 +198,15 @@ export class PixiFactory implements FactoryRenderer {
         this.labels.addChild(label);
       }
     }
+  }
+  animate(state: GameState, time: number): void {
+    if (!this.ready) return;
     this.actors.clear();
     for (const task of state.factory.transfers) {
       if (task.started === null || task.due === null) continue;
       const progress = Math.max(
         0,
-        Math.min(
-          1,
-          (state.tick * GAME_SECONDS_PER_TICK - task.started) /
-            (task.due - task.started),
-        ),
+        Math.min(1, (time - task.started) / (task.due - task.started)),
       );
       const position = progress * (task.path.length - 1),
         i = Math.floor(position),

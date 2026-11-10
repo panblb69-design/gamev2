@@ -1,3 +1,4 @@
+import { GAME_SECONDS_PER_TICK } from "./core/time";
 import { FactoryUI } from "./ui/factory";
 import "./style.css";
 import { FixedClock, Simulation, gameDate } from "./core/simulation";
@@ -160,6 +161,10 @@ function frame(now: number) {
   if (!document.hidden) {
     const before = performance.now();
     const count = clock.advance(Math.max(0, now - last), sim);
+    renderer.animate(
+      sim.state,
+      Math.max(0, sim.state.tick - 1 + clock.fraction) * GAME_SECONDS_PER_TICK,
+    );
     tickMs = count ? (performance.now() - before) / count : 0;
     frames++;
     if (now - fpsAt >= 1000) {
