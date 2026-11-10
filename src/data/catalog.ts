@@ -168,3 +168,9 @@ items.push({
   unit: "ks",
   kind: "component",
 });
+items.push({
+  id: "FE-HX001-P",
+  name: "Výparník FE-HX001-P v ochranném exportním balení",
+  unit: "ks",
+  kind: "product",
+});

@@ -83,7 +83,12 @@ export interface ScheduledEvent {
     | "cooperation"
     | "payment"
     | "payroll"
-    | "repair";
+    | "repair"
+    | "calendar"
+    | "training"
+    | "market"
+    | "research"
+    | "changeover";
   id: string;
 }
 export interface Factory {

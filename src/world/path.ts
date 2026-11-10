@@ -28,6 +28,10 @@ export function overlap(a: Rect, b: Rect): boolean {
 }
 export function port(s: GameState, location: string): Point {
   if (location === "warehouse") return warehouse;
+  const dock = s.enterprise.docks.find((d) => d.id === location);
+  if (dock) return { x: dock.x, y: dock.y };
+  const zone = s.enterprise.zones.find((z) => z.id === location);
+  if (zone) return { x: zone.x - 1, y: zone.y };
   const id = location.split(":")[0]!;
   const r = footprint(s, id);
   return { x: r.x - 1, y: r.y };
@@ -54,19 +58,39 @@ export function path(
   if (cache.routes.size < 5000) cache.routes.set(key, result);
   return result;
 }
+export function widePath(s: GameState, start: Point, end: Point) {
+  return computePath(s, start, end, undefined, true);
+}
 function computePath(
   s: GameState,
   start: Point,
   end: Point,
   extra?: Rect,
+  wide = false,
 ): Point[] | null {
   const w = s.world.width,
     h = s.world.height,
     blocked = new Uint8Array(w * h);
-  for (const m of s.machines) {
-    const r = footprint(s, m.id);
-    for (let y = r.y; y < r.y + r.height; y++)
-      for (let x = r.x; x < r.x + r.width; x++) blocked[y * w + x] = 1;
+  const obstacles = [
+    ...s.machines.map((m) => footprint(s, m.id)),
+    ...s.enterprise.zones,
+  ];
+  for (const r of obstacles) {
+    for (
+      let y = Math.max(0, r.y - (wide ? 1 : 0));
+      y < Math.min(h, r.y + r.height);
+      y++
+    )
+      for (
+        let x = Math.max(0, r.x - (wide ? 1 : 0));
+        x < Math.min(w, r.x + r.width);
+        x++
+      )
+        blocked[y * w + x] = 1;
+  }
+  if (wide) {
+    blocked[start.y * w + start.x] = 0;
+    blocked[end.y * w + end.x] = 0;
   }
   if (extra)
     for (let y = extra.y; y < extra.y + extra.height; y++)

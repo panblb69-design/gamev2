@@ -1,33 +1,27 @@
-# Roadmapa M0–M6
+# Roadmapa
 
-## M0 — dodáno
+Výchozí implementace zadání v0.1 je uzavřená přes M0–M6. Akceptace a omezení: [MILESTONE_ACCEPTANCE.md](MILESTONE_ACCEPTANCE.md).
 
-Mapa, kamera, hodiny, kapitál, modely, IndexedDB, testy a dokumentace.
+- **M0:** projekt, mapa, čas, kapitál, modely, save/load.
+- **M1:** první výrobní a ekonomický průchod FE-HX001.
+- **M2:** sklady, kontejnery, kapacity, FIFO, VZV, rezervace tras, rampy a okna příjmu.
+- **M3:** MRP, výrobní příkazy, nabídky, rámcové smlouvy, odvolávky, sankce, kapacita a cash flow.
+- **M4:** profese, směny a týmy, kvalifikace, absence, školení, poruchy a servisní plán.
+- **M5:** vlastní tavidlo/CAB, média a sítě s kapacitou, odpady a genealogie.
+- **M6:** robotizace, AGV, dopravníky, výzkum, exportní balení a MES/OEE.
 
-## M1 — implementovaný první výrobní průchod
+## Způsob ověření
 
-Nákup parcely a obdélníkové haly, umístění strojů, přípojky, nákup materiálu, výroba komponent nebo jejich nákup, čištění, montáž, kooperace, heliový test, povrch, balení, expedice a inkaso. Základ personálu, mezd a oprav. Save v2 a migrace M0. Konkrétní omezení v STATUS.md; plné MVP není označeno za dokončené.
+1. Regrese M0/M1 a testy jednotlivých nových mechanismů.
+2. Společná kampaň od surovin přes lokální CAB a exportní variantu až k inkasu po save/load.
+3. Headless benchmark 144 stanic / 200 lidí / 5000 šarží.
+4. Browser kontrola workeru, mapy, ovládání všech přehledů a perzistence.
+5. Typecheck, lint a produkční build včetně samostatného worker assetu.
 
-## M2 — další implementační etapa
+## Případná navazující práce
 
-1. Oddělit inventory/logistics od engine, přidat index podle item/location, dirty reconcile a benchmark 100–300 strojů, 200 pracovníků, tisíce šarží.
-2. Fyzické skladové zóny/pozice a kapacity v objemu/hmotnosti; paletové kontejnery a nosnost. Zachovat FIFO a rezervace přes save.
-3. VZV a šířka uliček, dopravní konflikty, rampy/dodací okna a částečné přepravy.
+1. Herní testování a úpravy balancu podle skutečných odehraných zakázek.
+2. Jemnější doprava po segmentech a jednotlivé skladové pozice.
+3. Nový fyzický výrobek s ověřeným BOM/procesem a delší benchmarky.
 
-## M3 — plánování a obchod
-
-Generované nabídky + rámcová smlouva a odvolávky, MRP/rezervace zakázky, zpoždění dodávek, sankce a kapacitní kalendář. Oddělit ledger a faktury, účetní report zásob/WIP a cash flow, OEE bez dvojího použití faktorů.
-
-## M4 — personál a údržba
-
-Směnový kalendář, samostatné profese a kvalifikace, školení a absence. Preventivní údržba, servisní plán, zásoby dílů a MTBF/MTTR, specifické poruchy podle technologie.
-
-## M5 — vlastní technologie a média
-
-Lokální tavidlo/CAB se skutečnými kapacitami a pořadím, média a jejich zásoby/průtoky, kompresor, voda/dusík/odsávání, odpadní hospodářství a strukturovaná genealogie šarží.
-
-## M6 — automatizace a MES
-
-Dopravníkové hrany, AGV/roboty se sdílenými logistickými rezervacemi, výrobní analytika/OEE, další produktové varianty a výzkum. Každý nový produkt musí mít validovaný BOM a samostatné procesní recepty, nikoli automatický generátor příjmů.
-
-Každou etapu uzavřít headless integračními testy, browser kontrolou uživatelského toku a buildem. Práce M1–M6 je autorizovaná; navazovat tímto pořadím, nesmíchat nedokončené etapy do tvrzení o hotové hře.
+Nasazení této iterace je odložené podle uživatelského požadavku. Nepushovat automaticky po úspěšných testech.

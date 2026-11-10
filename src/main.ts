@@ -1,16 +1,18 @@
-import { GAME_SECONDS_PER_TICK } from "./core/time";
+import { BrowserSimulation } from "./core/browser-simulation";
+import { EnterpriseUI } from "./ui/enterprise";
+
 import { FactoryUI } from "./ui/factory";
 import "./style.css";
-import { FixedClock, Simulation, gameDate } from "./core/simulation";
+import { FixedClock, gameDate } from "./core/simulation";
 import { SPEEDS } from "./core/model";
 import { machines } from "./data/catalog";
 import { PixiFactory, type FactoryRenderer } from "./render/factory";
 import { SaveStore, encode, decode } from "./save/storage";
 import { cs as t, money } from "./ui/text";
 const root = document.querySelector<HTMLDivElement>("#app")!;
-root.innerHTML = `<header><div class="brand">${t.title}<small>${t.subtitle}</small></div><div class="stat"><small>${t.cash}</small><strong id="cash"></strong></div><div class="stat"><small>${t.revenue} / ${t.expenses}</small><span id="income"></span></div><div class="stat"><small>${t.employees}</small><span id="workers"></span></div><div class="time"><time id="date"></time><nav id="speeds" aria-label="Rychlost simulace"></nav></div></header><div class="workspace"><aside><span class="eyebrow">${t.scope}</span><h2>${t.map}</h2><p>${t.future}</p><section><h3>${t.catalog}</h3><p class="muted">${t.balance}</p><div id="catalog"></div></section></aside><main><div class="map-heading"><div><span class="eyebrow">100 × 70 M · GRID 1 M</span><h1 id="parcel">${t.parcel}</h1></div><span class="badge">M1</span></div><div id="map" aria-label="Mapa továrny" tabindex="0"></div><div class="camera"><button id="minus" aria-label="Oddálit">−</button><button id="plus" aria-label="Přiblížit">+</button><button id="left" aria-label="Posunout vlevo">←</button><button id="right" aria-label="Posunout vpravo">→</button><button id="up" aria-label="Posunout nahoru">↑</button><button id="down" aria-label="Posunout dolů">↓</button><button id="center">${t.reset}</button></div><p class="map-hint">${t.hint}</p></main><aside class="right"><span class="eyebrow">${t.status}</span><h2>${t.ready}</h2><p class="notice" id="production-status">${t.noProduction}</p><p>${t.empty}</p><section><h3>${t.selection}</h3><strong id="selected">—</strong><p>${t.selected}</p></section><section><h3>${t.product}</h3><p>${t.bom}</p></section><section><h3>${t.investor}</h3><p id="accounts"></p></section><section class="save-controls"><button id="save">${t.save}</button><button id="load">${t.load}</button><button id="export">${t.export}</button><label class="button" for="import">${t.import}</label><input id="import" type="file" accept="application/json,.json" hidden></section><p id="message" role="status" aria-live="polite"></p></aside></div><footer><span>WEBGL · FIXED STEP 50 MS</span><span id="metrics"></span></footer>`;
+root.innerHTML = `<header><div class="brand">${t.title}<small>${t.subtitle}</small></div><div class="stat"><small>${t.cash}</small><strong id="cash"></strong></div><div class="stat"><small>${t.revenue} / ${t.expenses}</small><span id="income"></span></div><div class="stat"><small>${t.employees}</small><span id="workers"></span></div><div class="time"><time id="date"></time><nav id="speeds" aria-label="Rychlost simulace"></nav></div></header><div class="workspace"><aside><span class="eyebrow">${t.scope}</span><h2>${t.map}</h2><p>${t.future}</p><section><h3>${t.catalog}</h3><p class="muted">${t.balance}</p><div id="catalog"></div></section></aside><main><div class="map-heading"><div><span class="eyebrow">100 × 70 M · GRID 1 M</span><h1 id="parcel">${t.parcel}</h1></div><span class="badge">M6</span></div><div id="map" aria-label="Mapa továrny" tabindex="0"></div><div class="camera"><button id="minus" aria-label="Oddálit">−</button><button id="plus" aria-label="Přiblížit">+</button><button id="left" aria-label="Posunout vlevo">←</button><button id="right" aria-label="Posunout vpravo">→</button><button id="up" aria-label="Posunout nahoru">↑</button><button id="down" aria-label="Posunout dolů">↓</button><button id="center">${t.reset}</button></div><p class="map-hint">${t.hint}</p></main><aside class="right"><span class="eyebrow">${t.status}</span><h2>${t.ready}</h2><p class="notice" id="production-status">${t.noProduction}</p><p>${t.empty}</p><section><h3>${t.selection}</h3><strong id="selected">—</strong><p>${t.selected}</p></section><section><h3>${t.product}</h3><p>${t.bom}</p></section><section><h3>${t.investor}</h3><p id="accounts"></p></section><section class="save-controls"><button id="save">${t.save}</button><button id="load">${t.load}</button><button id="export">${t.export}</button><label class="button" for="import">${t.import}</label><input id="import" type="file" accept="application/json,.json" hidden></section><p id="message" role="status" aria-live="polite"></p></aside></div><footer><span>WEBGL · FIXED STEP 50 MS</span><span id="metrics"></span></footer>`;
 const el = (id: string) => document.getElementById(id)!;
-const sim = new Simulation(),
+const sim = new BrowserSimulation(),
   clock = new FixedClock(),
   store = new SaveStore();
 const renderer: FactoryRenderer = new PixiFactory();
@@ -21,9 +23,20 @@ for (const speed of SPEEDS) {
   const b = document.createElement("button");
   b.textContent = speed ? `${speed}×` : t.pause;
   b.dataset.speed = String(speed);
-  b.onclick = () => {
+  b.onclick = async () => {
+    b.disabled = true;
     sim.setSpeed(speed);
-    refresh();
+    try {
+      await sim.snapshot();
+      refresh();
+    } catch (error) {
+      put(
+        "message",
+        error instanceof Error ? error.message : "Chyba řízení času.",
+      );
+    } finally {
+      b.disabled = false;
+    }
   };
   el("speeds").append(b);
 }
@@ -37,7 +50,11 @@ for (const machine of machines) {
   el("catalog").append(row);
 }
 const factoryUI = new FactoryUI(sim, (message) => put("message", message));
+const enterpriseUI = new EnterpriseUI(sim, (message) =>
+  put("message", message),
+);
 function refresh() {
+  enterpriseUI.refresh();
   factoryUI.refresh();
   renderer.update(sim.state);
   put(
@@ -45,6 +62,7 @@ function refresh() {
     sim.state.world.owned ? "Vlastní výrobní závod" : "Nezakoupený pozemek",
   );
   const s = sim.state;
+  if (sim.error) put("message", sim.error);
   put(
     "production-status",
     `V provozu: ${s.machines.filter((m) => m.status === "running").length} / ${s.machines.length} · Přepravy: ${s.factory.transfers.length} · Expedováno: ${s.factory.shipped} ks`,
@@ -90,34 +108,36 @@ async function action(fn: () => Promise<void>) {
 }
 el("save").onclick = () =>
   void action(async () => {
-    await store.write(sim.state);
+    await store.write(await sim.snapshot());
     put("message", t.saved);
   });
 el("load").onclick = () =>
   void action(async () => {
-    sim.state = await store.read();
+    await sim.replaceState(await store.read());
     clock.reset();
     put("message", t.loaded);
   });
-el("export").onclick = () => {
-  const url = URL.createObjectURL(
-    new Blob([encode(sim.state)], { type: "application/json" }),
-  );
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "factory-empire.json";
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-};
+el("export").onclick = () =>
+  void action(async () => {
+    const url = URL.createObjectURL(
+      new Blob([encode(await sim.snapshot())], { type: "application/json" }),
+    );
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "factory-empire.json";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
 el("import").onchange = () =>
   void action(async () => {
     const input = el("import") as HTMLInputElement;
     const file = input.files?.[0];
     try {
       if (!file) return;
-      if (file.size > 20_000_000) throw new Error("Soubor je příliš velký.");
+      if (file.size > 128 * 1024 * 1024)
+        throw new Error("Soubor je příliš velký.");
       const next = decode(await file.text());
-      sim.state = next;
+      await sim.replaceState(next);
       clock.reset();
       put("message", t.imported);
     } finally {
@@ -159,13 +179,10 @@ document.addEventListener("visibilitychange", () => {
 });
 function frame(now: number) {
   if (!document.hidden) {
-    const before = performance.now();
-    const count = clock.advance(Math.max(0, now - last), sim);
-    renderer.animate(
-      sim.state,
-      Math.max(0, sim.state.tick - 1 + clock.fraction) * GAME_SECONDS_PER_TICK,
-    );
-    tickMs = count ? (performance.now() - before) / count : 0;
+    clock.advance(Math.max(0, now - last), sim);
+    sim.flush();
+    renderer.animate(sim.state, sim.presentationSeconds());
+    tickMs = sim.lastTickMs;
     frames++;
     if (now - fpsAt >= 1000) {
       fps = Math.round((frames * 1000) / (now - fpsAt));

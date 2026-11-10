@@ -1,11 +1,13 @@
+import { createEnterprise } from "../enterprise/state";
 import { createFactory } from "../manufacturing/model";
-import { FactoryEngine } from "../manufacturing/engine";
+import { FactoryEngine, type FactoryCommand } from "../manufacturing/engine";
 import { type GameState, type Speed } from "./model";
 import { CONFIG, GAME_SECONDS_PER_TICK } from "./time";
 export { CONFIG } from "./time";
 export function createGame(seed = 123456789): GameState {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
+    enterprise: createEnterprise(),
     factory: createFactory(),
     tick: 0,
     rngState: seed >>> 0,
@@ -27,6 +29,19 @@ export function createGame(seed = 123456789): GameState {
 }
 export class Simulation {
   constructor(public state: GameState = createGame()) {}
+  async command(id: string, command: FactoryCommand): Promise<void> {
+    new FactoryEngine(this.state).command(id, command);
+  }
+  async snapshot(): Promise<GameState> {
+    return structuredClone(this.state);
+  }
+  async replaceState(state: GameState): Promise<void> {
+    this.state = state;
+  }
+  presentationSeconds(): number {
+    return this.state.tick * GAME_SECONDS_PER_TICK;
+  }
+  flush(): void {}
   step(): void {
     this.state.tick++;
     new FactoryEngine(this.state).advance(

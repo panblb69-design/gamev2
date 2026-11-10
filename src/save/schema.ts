@@ -1,3 +1,5 @@
+import { ROLES, productionRole } from "../workforce/roles";
+import { enterpriseSchema, createEnterprise } from "../enterprise/state";
 import { GAME_SECONDS_PER_TICK } from "../core/time";
 import { z } from "zod";
 import { items, machines } from "../data/catalog";
@@ -30,7 +32,8 @@ const status = z.enum([
 ]);
 const game = z
   .object({
-    schemaVersion: z.literal(2),
+    schemaVersion: z.literal(3),
+    enterprise: enterpriseSchema,
     tick: integer,
     rngState: integer.max(0xffffffff),
     speed: z.union([
@@ -89,7 +92,7 @@ const game = z
       .array(
         z.object({
           id,
-          role: z.enum(["operator", "warehouse", "mechanic"]),
+          role: z.enum(Object.keys(ROLES) as [string, ...string[]]),
           skills: z.array(z.string()).max(20),
           wageMinor: integer,
           shiftId: id,
@@ -117,6 +120,11 @@ const game = z
               "payment",
               "payroll",
               "repair",
+              "calendar",
+              "training",
+              "market",
+              "research",
+              "changeover",
             ]),
             id,
           }),
@@ -228,6 +236,93 @@ const game = z
   .superRefine((s, ctx) => {
     const fail = (message: string) => ctx.addIssue({ code: "custom", message });
     const f = s.factory;
+    const e = s.enterprise;
+    for (const collection of [
+      e.zones,
+      e.vehicles,
+      e.docks,
+      e.genealogy,
+      e.research,
+      e.utilities,
+      e.plans,
+      e.frameworks,
+    ])
+      if (new Set(collection.map((x) => x.id)).size !== collection.length)
+        fail("Duplicitní ID rozšířeného systému.");
+    for (const zone of e.zones)
+      if (zone.x + zone.width >= 100 || zone.y + zone.height >= 70)
+        fail("Sklad mimo mapu.");
+    for (const link of e.links)
+      if (
+        !s.machines.some((m) => m.id === link.machineId) ||
+        !e.utilities.some((u) => u.id === link.sourceId && u.kind === link.kind)
+      )
+        fail("Rozvod má neplatné konce.");
+    for (const allocation of e.allocations)
+      if (
+        !s.lots.some(
+          (l) =>
+            l.id === allocation.lotId &&
+            l.quantity - l.reserved >= allocation.quantity,
+        ) ||
+        !f.contracts.some((c) => c.id === allocation.contractId)
+      )
+        fail("Neplatná obchodní rezervace.");
+    for (const l of s.lots) {
+      if (
+        e.allocations
+          .filter((a) => a.lotId === l.id)
+          .reduce((n, a) => n + a.quantity, 0) +
+          l.reserved >
+        l.quantity + 1e-6
+      )
+        fail("Nadměrná rezervace.");
+    }
+    for (const meta of e.transport)
+      if (
+        !f.transfers.some((t) => t.id === meta.taskId) ||
+        (meta.vehicleId &&
+          !e.vehicles.some((v) => v.id === meta.vehicleId) &&
+          !e.conveyors.some((c) => c.id === meta.vehicleId))
+      )
+        fail("Neplatná manipulační jednotka.");
+    for (const [machineId, ids] of Object.entries(e.rosters))
+      if (
+        !s.machines.some((m) => m.id === machineId) ||
+        new Set(ids).size !== ids.length ||
+        ids.some(
+          (id) =>
+            !s.employees.some((w) => w.id === id && productionRole(w.role)),
+        )
+      )
+        fail("Neplatný směnový tým.");
+    for (const [id, p] of Object.entries(e.workerProfiles)) {
+      if (!s.employees.some((w) => w.id === id)) fail("Neznámý pracovník.");
+      if (
+        p.trainingSkill &&
+        !f.events.some(
+          (event) =>
+            event.kind === "training" &&
+            event.id === id &&
+            event.at === p.trainingUntil,
+        )
+      )
+        fail("Chybí událost školení.");
+    }
+    for (const r of e.research)
+      if (
+        r.status === "running" &&
+        !f.events.some(
+          (event) =>
+            event.kind === "research" &&
+            event.id === r.id &&
+            event.at === r.due,
+        )
+      )
+        fail("Chybí událost výzkumu.");
+    for (const c of e.containers)
+      if (!s.lots.some((l) => l.id === c.lotId)) fail("Kontejner bez šarže.");
+
     if (s.machines.length && !f.hall) fail("Stroje vyžadují halu.");
     if (f.rejected > f.tested) fail("Neshodné kusy převyšují počet testů.");
     const ids = [
@@ -265,6 +360,11 @@ const game = z
         fail("Stroj mimo halu.");
     }
     for (const placed of s.machines) {
+      if (
+        placed.status === "changeover" &&
+        !f.events.some((e) => e.kind === "changeover" && e.id === placed.id)
+      )
+        fail("Chybí událost přestavby.");
       const m = f.machines.find((m) => m.id === placed.id);
       if (placed.status === "running" && m?.due === null)
         fail("Běžící stroj nemá cyklus.");
@@ -304,6 +404,8 @@ const game = z
       fail("Neplatná hala.");
     const validLocation = (location: string) =>
       location === "warehouse" ||
+      s.enterprise.zones.some((z) => z.id === location) ||
+      s.enterprise.docks.some((d) => d.id === location) ||
       s.machines.some(
         (m) => location === `${m.id}:in` || location === `${m.id}:out`,
       );
@@ -332,7 +434,7 @@ const game = z
         fail("Neplatná receptura stroje.");
       if (
         m.workerId &&
-        !s.employees.some((w) => w.id === m.workerId && w.role === "operator")
+        !s.employees.some((w) => w.id === m.workerId && productionRole(w.role))
       )
         fail("Chybí operátor.");
       if (
@@ -424,10 +526,18 @@ export function parseSave(raw: unknown) {
     raw = { ...old, schemaVersion: 2, factory: createFactory() };
   }
   if (
+    raw &&
+    typeof raw === "object" &&
+    "schemaVersion" in raw &&
+    raw.schemaVersion === 2
+  ) {
+    raw = { ...raw, schemaVersion: 3, enterprise: createEnterprise() };
+  }
+  if (
     !raw ||
     typeof raw !== "object" ||
     !("schemaVersion" in raw) ||
-    raw.schemaVersion !== 2
+    raw.schemaVersion !== 3
   )
     throw new Error("Nepodporovaná verze uložené hry.");
   const result = game.safeParse(raw);

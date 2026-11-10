@@ -275,3 +275,112 @@ aside label {
 #machine-info {
   color: #edca86;
 }
+#management {
+  width: min(1300px, 96vw);
+  height: 90dvh;
+  max-width: 96vw;
+  padding: 24px;
+  border: 1px solid #577281;
+  border-radius: 10px;
+  background: #14222d;
+  color: #e1e9ed;
+}
+#management::backdrop {
+  background: #050d14bb;
+}
+.management-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: -24px;
+  background: #14222d;
+  z-index: 2;
+  padding: 10px 0;
+}
+#management-tabs {
+  position: sticky;
+  top: 38px;
+  z-index: 2;
+  flex-wrap: wrap;
+  background: #14222d;
+  padding: 10px 0;
+  margin: 0;
+}
+#management-body {
+  margin-top: 15px;
+}
+.management-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.management-panel[hidden] {
+  display: none;
+}
+.management-panel article {
+  background: #1a2c39;
+  padding: 18px;
+  border: 1px solid #354f5f;
+  border-radius: 8px;
+}
+.management-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 14px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #304958;
+}
+.management-form label {
+  flex: 1 1 150px;
+  font-size: 12px;
+  color: #bfd1da;
+}
+.management-form label input[type="checkbox"] {
+  display: block;
+  width: auto;
+  margin-top: 12px;
+}
+.management-form button {
+  align-self: end;
+  margin: 6px 0;
+}
+.report {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.8;
+  font-size: 12px;
+  color: #abc1cc;
+  max-height: 330px;
+  overflow: auto;
+}
+#management-message {
+  position: sticky;
+  bottom: -24px;
+  padding: 12px;
+  background: #14222d;
+  color: #edc986;
+}
+#open-management {
+  color: #edc986;
+  white-space: nowrap;
+}
+@media (max-width: 1100px) {
+  .management-panel {
+    grid-template-columns: 1fr;
+  }
+  header {
+    gap: 9px;
+  }
+  .brand {
+    font-size: 13px;
+  }
+  .stat strong {
+    font-size: 15px;
+  }
+  #open-management {
+    padding: 7px;
+    font-size: 11px;
+  }
+}

@@ -137,6 +137,10 @@ export class PixiFactory implements FactoryRenderer {
     const signature = JSON.stringify([
       state.factory.revision,
       state.factory.hall,
+      state.enterprise.zones,
+      state.enterprise.utilities,
+      state.enterprise.links,
+      state.enterprise.conveyors,
       state.world.owned,
       state.machines.map((m) => [
         m.id,
@@ -158,6 +162,38 @@ export class PixiFactory implements FactoryRenderer {
           .fill({ color: 0x527180, alpha: 0.2 })
           .stroke({ color: 0xa0b7be, width: 2 });
       this.scene.rect(10, 10, 25, 25).fill(0xd3aa63);
+      for (const z of state.enterprise.zones) {
+        this.scene
+          .rect(z.x * 10, z.y * 10, z.width * 10, z.height * 10)
+          .fill({
+            color: z.kind === "quarantine" ? 0xb66352 : 0x496fa0,
+            alpha: 0.5,
+          })
+          .stroke({ color: 0x82b3dd, width: 1 });
+      }
+      const colors = {
+        power: 0xe4ba5e,
+        air: 0xa3d3d6,
+        water: 0x568ded,
+        nitrogen: 0xac8cea,
+        exhaust: 0xa0aaa8,
+      };
+      for (const link of state.enterprise.links) {
+        this.scene.moveTo(link.path[0]!.x * 10 + 5, link.path[0]!.y * 10 + 5);
+        for (const p of link.path)
+          this.scene.lineTo(p.x * 10 + 5, p.y * 10 + 5);
+        this.scene.stroke({ color: colors[link.kind], width: 1 });
+      }
+      for (const u of state.enterprise.utilities)
+        this.scene
+          .circle(u.x * 10 + 5, u.y * 10 + 5, 4)
+          .fill(u.enabled ? colors[u.kind] : 0x666666);
+      for (const c of state.enterprise.conveyors) {
+        this.scene.moveTo(c.path[0]!.x * 10 + 5, c.path[0]!.y * 10 + 5);
+        for (const p of c.path) this.scene.lineTo(p.x * 10 + 5, p.y * 10 + 5);
+        this.scene.stroke({ color: 0x78be92, width: 3 });
+      }
+
       for (const m of state.machines) {
         const d = machines.find((d) => d.id === m.definitionId)!;
         const rotated = m.orientation === 90 || m.orientation === 270;
@@ -183,12 +219,21 @@ export class PixiFactory implements FactoryRenderer {
         this.scene.circle(m.x * 10 - 5, m.y * 10 + 5, 3).fill(0xe9c779);
       }
     }
-    const labelKey = JSON.stringify(
+    const labelKey = JSON.stringify([
       state.machines.map((m) => [m.id, m.x, m.y, m.definitionId]),
-    );
+      state.enterprise.zones,
+    ]);
     if (this.labelRevision !== labelKey) {
       this.labelRevision = labelKey;
       this.labels.removeChildren().forEach((c) => c.destroy());
+      for (const z of state.enterprise.zones) {
+        const label = new Text({
+          text: z.name,
+          style: { fontFamily: "sans-serif", fontSize: 9, fill: 0xdce7f9 },
+        });
+        label.position.set(z.x * 10 + 2, z.y * 10 + 2);
+        this.labels.addChild(label);
+      }
       for (const m of state.machines) {
         const label = new Text({
           text: m.definitionId,
@@ -219,7 +264,15 @@ export class PixiFactory implements FactoryRenderer {
           7,
           7,
         )
-        .fill(0xf4bd55);
+        .fill(
+          state.enterprise.transport.find((meta) => meta.taskId === task.id)
+            ?.mode === "agv"
+            ? 0x65b8f4
+            : state.enterprise.transport.find((meta) => meta.taskId === task.id)
+                  ?.mode === "conveyor"
+              ? 0x7cde98
+              : 0xf4bd55,
+        );
     }
   }
   private zoomAt(factor: number, x: number, y: number): void {

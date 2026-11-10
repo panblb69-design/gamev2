@@ -19,19 +19,18 @@ export class FactoryUI {
   private el(id: string) {
     return document.getElementById(id)!;
   }
-  private run(c: FactoryCommand, key = JSON.stringify(c)) {
+  private async run(c: FactoryCommand, key = JSON.stringify(c)) {
     // Reuse the command ID for accidental double-clicks; core also deduplicates it.
     const now = performance.now();
     if (this.lastAction.key === key && now - this.lastAction.at < 600) return;
     try {
-      new FactoryEngine(this.sim.state).command(
-        `${this.session}:${++this.counter}`,
-        c,
-      );
+      this.lastAction = { key, at: now };
+      await this.sim.command(`${this.session}:${++this.counter}`, c);
       this.notify("Příkaz proveden.");
       this.lastAction = { key, at: now };
       this.refresh();
     } catch (e) {
+      this.lastAction = { key: "", at: 0 };
       this.notify(e instanceof Error ? e.message : "Příkaz se nezdařil.");
     }
   }
@@ -123,7 +122,7 @@ export class FactoryUI {
     this.button(this.el("hire"), "Najmout údržbáře", () =>
       this.run({ type: "hire", role: "mechanic" }),
     );
-    this.button(this.el("buy-actions"), "Objednat (dodání 4 h)", () =>
+    this.button(this.el("buy-actions"), "Objednat (dodání od 4 h)", () =>
       this.run({
         type: "buy",
         itemId: (this.el("buy-item") as HTMLSelectElement).value,
@@ -259,9 +258,11 @@ export class FactoryUI {
     if (contracts.dataset.signature !== signature) {
       contracts.dataset.signature = signature;
       contracts.replaceChildren();
-      for (const c of s.factory.contracts) {
+      for (const c of s.factory.contracts.filter(
+        (c) => c.status !== "offer" || c.deadline >= s.tick * 36,
+      )) {
         const p = document.createElement("p");
-        p.textContent = `${c.id} · ${c.quantity} ks × ${money(c.unitPriceMinor)} · ${c.status} · splatnost ${c.paymentDays} dní`;
+        p.textContent = `${c.id} · ${s.enterprise.contractProducts[c.id] ?? "FE-HX001"} · ${c.quantity} ks × ${money(c.unitPriceMinor)} · ${c.status} · splatnost ${c.paymentDays} dní`;
         contracts.append(p);
         if (c.status === "offer")
           this.button(contracts, "Přijmout " + c.id, () =>

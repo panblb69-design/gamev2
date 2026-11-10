@@ -1,6 +1,6 @@
-# Factory Empire — M1
+# Factory Empire — M0–M6
 
-Česká průmyslová hra podle zadání v0.1. **První výrobní průchod M1** navazuje na technický základ M0. M2–M6 nejsou dokončené. Bez backendu a vzdálených runtime API.
+Česká průmyslová hra podle zadání v0.1. Implementované milníky M0–M6 tvoří první funkční verzi. Přesná akceptace a herní zjednodušení jsou v [MILESTONE_ACCEPTANCE.md](docs/MILESTONE_ACCEPTANCE.md). Bez backendu a vzdálených runtime API.
 
 ## Spuštění
 
@@ -15,16 +15,16 @@ V prohlížeči otevřete adresu vypsanou Vite. Mapu zobrazuje PixiJS s WebGL; p
 
 ## Co skutečně funguje
 
-- WebGL mapa 100×70 m, metrová mřížka, kamera, výběr a umisťování.
-- Kapitál 300 mil. Kč; nákup pozemku, obdélníková hala, stroje, servisní mezery a průchodnost. Rotace 0/90°.
-- Pauza/1×/2×/5×/10×, seedovaná headless simulace a plánované události; 120 sekund při 1× = den.
-- Nákupy s dodáním po 4 h, agregované šarže/FIFO, rezervace a viditelné přepravy. Stroje potřebují přípojky, operátora a skutečné vstupy, výstupní buffer je omezený.
-- Vlastní výroba desek/lamel/výztuh/trubek nebo jejich nákup → čištění → montáž → externí tavidlo/CAB (2 dny) → heliový test → povrch → balení.
-- Neshodné kusy v karanténě, mzdy a energie, jednoduché poruchy a opravy.
-- Dvě jednorázové zakázky, skutečná expedice a vystavení faktury, inkaso až za 30 dní.
-- IndexedDB save v2, migrace prázdného M0 save, JSON export/import a validace rozpracovaných vazeb. Ruční ukládání, doporučený export pro zálohu.
+- WebGL mapa s výstavbou, kolizemi, kamerou a agregovanou manipulací; simulace běží v samostatném Web Workeru.
+- Celý FE-HX001 od suroviny nebo nakoupených komponent přes vlastní výrobu/kooperaci až po kvalitu, balení, expedici a inkaso.
+- Fyzické sklady, kontejnery, FIFO a rezervace, VZV, rampy a příjmové sloty.
+- MRP, výrobní příkazy, cenové nabídky, rámcové smlouvy, odvolávky, sankce a přehled kapacity/financí.
+- Profese, směny, týmy, kvalifikace, školení, absence, poruchy a servis.
+- Vlastní tavidlo a CAB, kapacitní rozvody a spotřeba médií, odpad a sledovatelnost.
+- Výzkum, robotizace, AGV, dopravníky, MES doplňování a OEE. FE-HX001-P je exportní balicí varianta, nikoli nově homologovaný tepelný výměník.
+- Kapitál 300 mil. Kč, české UI, fixed-step a seed. IndexedDB/JSON save v3 a migrace M0/M1.
 
-Přesná zjednodušení a otevřené části v [STATUS.md](docs/STATUS.md). Návrhové ceny a spotřeby jsou **neověřené herní hodnoty**, nikoli reálné technické údaje.
+Všechny ceny, spotřeby a technické koeficienty jsou **neověřené herní hodnoty**. Hranice modelu a přesnou evidenci testů najdete v dokumentaci. Ovládání nových systémů otevřete tlačítkem **Řízení závodu** v horním panelu.
 
 ## Kontroly
 
@@ -39,9 +39,13 @@ npx playwright test
 
 V cloudu lze použít systémový prohlížeč: `CHROMIUM_PATH=/usr/bin/chromium npx playwright test`. Jinak se použije instalovaný Playwright Chromium. Testy pokrývají hodiny, BOM, frontu skutečných výrobních a ekonomických událostí, scénáře T01–T10 v rozsahu M1, poruchu/opravu, migraci a save/load během výroby. Browser testy ověřují mapu a základní ovládání M0 i stavbu, přípojky, operátora a obnovení závodu M1. Výrobní průchod celé zakázky je headless integrační test stejného jádra, nikoli kompletní browser click-through.
 
+Pro test produkčního buildu včetně worker assetu: `TEST_PREVIEW=1 CHROMIUM_PATH=/usr/bin/chromium npx playwright test` (nejprve `npm run build`, port 5173 musí být volný). `npm test` vytváří lokální `artifacts/performance.json`; benchmark izoluje 144 stanic, 200 lidí a 5000 šarží. Současně běží test celé kampaně M2–M6 od surovin až k uhrazené faktuře po načtení save.
+
 ## GitHub Pages
 
 Workflow `.github/workflows/pages.yml` ověřuje lint, testy a build a nasazuje `dist/` oficiálním Pages artifact deploymentem. Běží po push do `main` či `feat/factory-empire-m0`; lze ho spustit i ručně.
+
+**Tato iterace se podle uživatelského pokynu nenahrává.** Následující postup je připravený pro pozdější schválené nasazení. Samotné lokální build/test nic nepublikují.
 
 První zapnutí v GitHubu:
 
@@ -64,9 +68,20 @@ Pokud repozitář nemá Pages dostupné kvůli tarifu/viditelnosti, GitHub to uv
 
 Volitelně pořiďte lis, lamelovací automat a dělení trubek a vyrábějte komponenty ze surovin. V levém panelu je rozbalovací průvodce. Pravý i levý panel lze samostatně posouvat. Uložení/načtení a JSON záloha fungují i během rozpracované výroby.
 
+## Jak vyzkoušet M2–M6
+
+1. V **Řízení závodu → Sklady a doprava** postavte zónu s kg/m³ kapacitou, pořiďte VZV a rampu. Objednávku můžete nasměrovat do zóny. Pro přepravu musí existovat průchozí trasa a směnový skladník, nebo vyzkoumané AGV/dopravník.
+2. V **Plánování a obchod** načtěte trh nebo sjednejte rámcovou smlouvu. Poptávku přijměte v hlavním panelu nebo předložte cenovou nabídku. Připravte MRP a uvolněte plán: nakoupí jen nedostatky, výrobu ani expedici nenahrazuje.
+3. V **Lidé a údržba** nastavte směny, dvoučlenný tým, školení a servis. CAB vyžaduje technologickou kvalifikaci. Pracovní úloha nezačne těsně před koncem směny, pokud by se nestihla dokončit.
+4. V katalogu umístěte M008 a M009. V **Rozvody a kvalita** pořiďte zdroje a trasy potřebných médií a zapněte vlastní CAB trasu MRP. Kromě rozvodů musíte objednat tavidlo, dusík a vodu. Odpad zlikvidujte nebo prodejte; výsledek testu a rodičovské šarže jsou v přehledu.
+5. V **Automatizace a MES** zahajte výzkum. Po skutečném dokončení lze robotizovat pracoviště, pořídit AGV, propojit výstup dopravníkem a nastavit automatické doplňování. Exportní varianta vyžaduje příslušný výzkum a balicí recept se dvěma obalovými sadami.
+6. Uložte hru, obnovte stránku a načtěte ji. Školení, výzkum, rozpracované cykly, doprava i pohledávky pokračují z uloženého stavu. Pravidelně exportujte JSON.
+
 ## Dokumentace
 
 - [Architektura](docs/ARCHITECTURE.md), [datové modely](docs/DATA_MODEL.md)
 - [Roadmapa a první vertikální řez](docs/ROADMAP.md)
 - [Herní předpoklady](docs/BALANCE_ASSUMPTIONS.md), [rozhodnutí](docs/DECISIONS.md)
+- [Výsledky ověření](docs/VALIDATION.md)
+- [Akceptace M0–M6](docs/MILESTONE_ACCEPTANCE.md)
 - [Stav a otevřené úkoly](docs/STATUS.md), [changelog](CHANGELOG.md)

@@ -357,7 +357,7 @@ describe("M1 real production acceptance", () => {
     const old = { ...s, schemaVersion: 1 };
     delete (old as { factory?: unknown }).factory;
     const migrated = decode(JSON.stringify(old));
-    expect(migrated.schemaVersion).toBe(2);
+    expect(migrated.schemaVersion).toBe(3);
     expect(migrated.factory.machines).toEqual([]);
     expect(migrated.finance.cashMinor).toBe(30000000000);
   });

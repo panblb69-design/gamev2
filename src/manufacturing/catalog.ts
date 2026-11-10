@@ -117,3 +117,31 @@ export const COSTS = {
   deliverySeconds: 4 * 3600,
   cooperationSeconds: 2 * 86400,
 };
+PURCHASE_PRICES.U001 = 5000;
+PURCHASE_PRICES.U002 = 1800;
+OPERATIONS.push(
+  {
+    id: "flux",
+    name: "Tavidlo a sušení",
+    machineId: "M008",
+    seconds: 72,
+    inputs: [part("W001", 1), part("U001", 0.01)],
+    outputs: [part("W003", 1)],
+  },
+  {
+    id: "braze",
+    name: "CAB pájení a chlazení",
+    machineId: "M009",
+    seconds: 100,
+    inputs: [part("W003", 1), part("U002", 0.2), part("U004", 1)],
+    outputs: [part("W004", 1)],
+  },
+  {
+    id: "pack-export",
+    name: "Exportní ochranné balení",
+    machineId: "M012",
+    seconds: 75,
+    inputs: [part("W006", 1), part("C007", 2), part("C008", 2)],
+    outputs: [part("FE-HX001-P", 1)],
+  },
+);
