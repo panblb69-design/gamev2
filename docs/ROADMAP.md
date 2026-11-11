@@ -1,15 +1,27 @@
 # Roadmapa
 
-- M0: mapa, kamera, čas, kapitál, katalogy a modely, IndexedDB, export/import, testy. Bez výroby a automatických příjmů.
-- M1 (samostatný úkol): koupě parcely a haly, kolize/průchodnost, nákup strojů s idempotencí; energie, receptury a buffery, fyzická logistika, personál; kooperace, kvalita, balení, expedice a faktura se splatností.
-- M2: kontejnery, VZV, FIFO, dopravní omezení.
-- M3: MRP, kontrakty a kapacitní plánování.
-- M4: směny, kvalifikace a údržba.
-- M5: vlastní CAB, tavidlo, média a sledovatelnost.
-- M6: automatizace, MES, nové produkty.
+Výchozí implementace zadání v0.1 je uzavřená přes M0–M6. Akceptace a omezení: [MILESTONE_ACCEPTANCE.md](MILESTONE_ACCEPTANCE.md).
 
-## První vertikální řez M1
+- **M0:** projekt, mapa, čas, kapitál, modely, save/load.
+- **M1:** první výrobní a ekonomický průchod FE-HX001.
+- **M2:** sklady, kontejnery, kapacity, FIFO, VZV, rezervace tras, rampy a okna příjmu.
+- **M3:** MRP, výrobní příkazy, nabídky, rámcové smlouvy, odvolávky, sankce, kapacita a cash flow.
+- **M4:** profese, směny a týmy, kvalifikace, absence, školení, poruchy a servisní plán.
+- **M5:** vlastní tavidlo/CAB, média a sítě s kapacitou, odpady a genealogie.
+- **M6:** robotizace, AGV, dopravníky, výzkum, exportní balení a MES/OEE.
 
-První PR: příkazy nákupu parcely/haly/stroje, kolize a T01. Druhý PR: sklad, rezervace, montáž, elektřina, logistický pohyb a T02–T05. Třetí PR: kooperace, karanténa, balení, expedice, splatnost a T06–T10. Každý PR musí mít testy skutečných materiálových a finančních změn.
+## Způsob ověření
 
-T01–T10 plného výrobního scénáře v M0 nejsou implementovány ani označeny za prošlé; M0 ověřuje pouze základ BOM, nominálních kapacit, hodin a save/load prázdného závodu.
+1. Regrese M0/M1 a testy jednotlivých nových mechanismů.
+2. Společná kampaň od surovin přes lokální CAB a exportní variantu až k inkasu po save/load.
+3. Headless benchmark 144 stanic / 200 lidí / 5000 šarží.
+4. Browser kontrola workeru, mapy, ovládání všech přehledů a perzistence.
+5. Typecheck, lint a produkční build včetně samostatného worker assetu.
+
+## Případná navazující práce
+
+1. Herní testování a úpravy balancu podle skutečných odehraných zakázek.
+2. Jemnější doprava po segmentech a jednotlivé skladové pozice.
+3. Nový fyzický výrobek s ověřeným BOM/procesem a delší benchmarky.
+
+Verze 0.6.0 byla dokončena lokálně podle původního pokynu. Uživatel následně autorizoval publikaci a herní kontrolu; 0.6.1 obsahuje první UX opravy. Další balancovací změny vycházejí z odehraných zakázek, nikoli z automatického navyšování tržeb.

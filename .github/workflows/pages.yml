@@ -2,7 +2,7 @@ name: Deploy Factory Empire to Pages
 
 on:
   push:
-    branches: [main, feat/factory-empire-m0]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
           cache: npm
       - run: npm ci
       - run: npm run lint

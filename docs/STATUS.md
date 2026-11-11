@@ -1,27 +1,27 @@
-# Stav implementace
+# Stav 0.6.1 — M0–M6 a první zakázka
 
-## M0 hotovo
+M0–M6 mají implementovaný a testovaný výchozí rozsah. Přesnou mapu funkcí na důkazy a konkrétní herní zjednodušení obsahuje [MILESTONE_ACCEPTANCE.md](MILESTONE_ACCEPTANCE.md).
 
-Nový webový projekt, strict TS, oddělené headless jádro a renderer adapter, WebGL metrová mapa a kamera, čas/rychlosti/seed, počáteční finance a české UI, ruční IndexedDB save/load + export/import + validace, jednotkové a browser testy, dokumentace.
+## Funkční cesta
 
-## Částečně / záměrné hranice
+Pozemek → hala → stroje/přípojky/pracovníci → poptávka nebo rámcová odvolávka → plán MRP a nákup chybějících surovin → příjem přes rampu/sklad → fyzické rezervované přepravy → lisování/lamely/trubky → čištění a montáž → kooperace **nebo** vlastní tavidlo/CAB → test těsnosti (neshoda do karantény) → povrch → balení → expedice → faktura → inkaso ve splatnosti.
 
-Datový základ obsahuje katalog zařízení a materiálů, BOM a montáž/balení. Neobsahuje kompletní proveditelné recepty FE-HX001: chybí kvantifikace surovin, čištění, médií, externí kroky a kvalita. Montážní recept nyní reprezentuje kusovníkový návrh, ne validovaný proces čištění. Pole neurčená v zadání mají null / prázdné profily. Obecné typy zaměstnanců, zásob a úloh existují, nejsou běžící systémy. M0 perzistence odmítá jejich nenulové kolekce. Migrace má explicitní verzi a odmítnutí nepodporované verze, ale zatím žádnou starší verzi k převodu.
+Výzkum dále umožňuje robotizaci, dopravníky, AGV, MES doplňování a exportní variantu balení. Každá automatizovaná cesta používá stejné materiálové a ekonomické události. Žádné generování výrobků bez vstupů.
 
-Výkon: grid je jedna statická geometrie; tick neprochází budoucí entity. FPS je skutečná metrika aktuální scény. Zátěž stovek strojů a 200 lidí zatím nelze testovat, protože příslušné systémy neexistují. Tick měří pouze cenu M0 kroku, není benchmark budoucí výroby.
+## Provoz a výkon
 
-## M1–M6 nehotovo, neimplementováno
+Prohlížečová simulace běží v samostatném Web Workeru; PixiJS a ovládání zůstávají na hlavním vlákně. Příkazy mají potvrzení, ukládání získá konzistentní snapshot z workeru. Snapshoty prezentace se posílají nejvýše přibližně 5×/s; render manipulace má samostatný update. Fronta wall-clock kroků je omezená: při přetížení se hra zpomalí, nikoli neomezeně zaplní zprávami. Simulační události a materiál se nezahazují.
 
-Žádné nákupy parcely/strojů, stavby, výrobní cykly, logistika, zaměstnávání, rozvody, kooperace, kvalita, faktury, inkaso či expedice. Plné akceptační scénáře T01–T10 nejsou spuštěny. M1 rozděleno do tří navazujících úkolů v ROADMAP.md.
+Prázdný tick pouze čte čelo min-heap fronty. Stejně časované události se zpracují dávkově ve stabilním pořadí, potom se přepočítají dotčené stroje. Inventář má index item/location/ID a cache cest používá revizi mapy. Detailní zátěžová evidence se zapisuje lokálně do ignorovaného artifacts/performance.json.
 
-## Otevřené úkoly
+## Uložené hry
 
-1. M1a: příkazy a jedinečná ID nákupů, vlastnictví pozemku, hala, obsazenost a servisní přístupy, test T01.
-2. M1b: doplnit a ověřit jednotky receptur, vstupy/rezervace/výstupy a stavové přechody, elektřina, personál a první fyzický přesun; testy T02–T05.
-3. M1c: zpožděná kooperace a kvalita, balení, expedice a splatnosti, verzované migrace a testy T06–T10.
+Formát v3 migruje validní prázdný M0 v1 i M1 v2. Ukládá probíhající výrobu, dopravu, rampy, MRP rezervace, školení, výzkum, rozvody, faktury a výsledky kvality. Import nemění IndexedDB, dokud hráč nestiskne Uložit. Zálohujte přes export JSON.
 
-Každý cloud úkol má izolované prostředí; používat existující checkout, nezakládat worktree bez požadavku uživatele.
+## Doručení
 
-## Ověření aktuálního běhu
+Verze 0.6.0 byla připravena lokálně bez nasazení. Dne 2026-11-11 uživatel následně autorizoval nahrání, nasazení a kontrolu hratelnosti. Verze 0.6.1 přidává průvodce první zakázkou a přesnou nabídku nákupu. Nasazení používá main, protože prostředí github-pages pracovní větev odmítá. Lokální build sám nic nepublikuje; ověřit výsledek vzdáleného workflow.
 
-2026-11-10: typecheck v rámci produkčního buildu, lint a 20/20 jednotkových testů prošly. Browser smoke v systémovém Chromiu se softwarovým WebGL prošel (1/1): mapa, pauza, rychlost, IndexedDB save/load, výběr polí, kamera, odmítnutí poškozeného importu; žádné pageerror. Test odhalil a opravil záporný první RAF delta (timestamp snímku může předcházet inicializačnímu performance.now). Screenshot je lokálně v ignorovaném test-results/m0-desktop.png. Browser smoke netestuje výrobní simulaci ani hardware GPU výkon.
+## Další možné rozšíření mimo uzavřený rozsah
+
+Segmentové řízení dopravního provozu, jednotlivé regálové sloty, tlakové ztráty rozvodů, další skutečně odlišné konstrukce výparníků po technickém zadání, rozsáhlé dlouhodobé archivování a ladění cen podle hraní. Nejsou uváděny jako existující funkce.

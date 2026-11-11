@@ -157,3 +157,20 @@ export const balance = {
   unitSaleMinor: 185000,
   unitAllocatedCostMinor: 148000,
 };
+items.push(
+  { id: "SCRAP-AL", name: "Hliníkový odpad", unit: "kg", kind: "waste" },
+  { id: "SCRAP-TUBE", name: "Odřezky trubek", unit: "m", kind: "waste" },
+);
+
+items.push({
+  id: "SPARE",
+  name: "Sada náhradních dílů",
+  unit: "ks",
+  kind: "component",
+});
+items.push({
+  id: "FE-HX001-P",
+  name: "Výparník FE-HX001-P v ochranném exportním balení",
+  unit: "ks",
+  kind: "product",
+});

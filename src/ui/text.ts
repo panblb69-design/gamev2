@@ -1,6 +1,6 @@
 export const cs = {
   title: "FACTORY EMPIRE",
-  subtitle: "PRŮMYSLOVÝ SIMULÁTOR · M0",
+  subtitle: "PRŮMYSLOVÝ SIMULÁTOR · M0–M6",
   cash: "Hotovost",
   revenue: "Výnosy",
   expenses: "Náklady",
@@ -12,14 +12,14 @@ export const cs = {
   pause: "Pauza",
   map: "Plán závodu",
   parcel: "Nezakoupený pozemek",
-  ready: "Technický základ připraven",
-  noProduction: "Výroba není v M0 spuštěna",
+  ready: "Výrobní provoz",
+  noProduction: "Výroba · logistika · automatizace",
   selection: "Vybrané pole",
   hint: "Tažením posuňte mapu · kolečkem přibližte · kliknutím vyberte pole",
   catalog: "Katalog zařízení",
   status: "Stav projektu",
-  scope: "M0 · mapa / čas / finance / ukládání",
-  future: "Nákup, stavba a výrobní řetězec následují v M1.",
+  scope: "Výstavba / výroba / expedice",
+  future: "Kupte pozemek, postavte halu a spusťte výrobu.",
   saved: "Hra byla uložena do IndexedDB.",
   loaded: "Uložená hra byla načtena.",
   imported: "Soubor byl načten. Pro trvalé uložení stiskněte Uložit.",
@@ -31,9 +31,9 @@ export const cs = {
   entities: "Entity",
   tasks: "Logistické úlohy",
   empty:
-    "Žádné stroje, zásoby ani pracovníci. Kapitál se bez ekonomických událostí nemění.",
+    "Výroba potřebuje materiál, přípojky, operátora a skladníka. Náklady na mzdy běží každý herní den.",
   balance: "Návrhové herní hodnoty · neověřeno",
-  product: "FE-HX001 · budoucí výrobní řetězec",
+  product: "FE-HX001 · výrobní řetězec",
   bom: "56 desek · 27 lamel · 2 výztuhy · 2 trubky · 1 blok. Při balení 2 záslepky + 1 obalová sada.",
   investor: "Podíl investora 35 %",
   receivables: "Pohledávky",
@@ -47,4 +47,12 @@ export const money = (minor: number) =>
     style: "currency",
     currency: "CZK",
     maximumFractionDigits: 0,
+  }).format(minor / 100);
+
+export const moneyExact = (minor: number) =>
+  new Intl.NumberFormat("cs-CZ", {
+    style: "currency",
+    currency: "CZK",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(minor / 100);
