@@ -43,15 +43,15 @@ Pro test produkčního buildu včetně worker assetu: `TEST_PREVIEW=1 CHROMIUM_P
 
 ## GitHub Pages
 
-Workflow `.github/workflows/pages.yml` ověřuje lint, testy a build a nasazuje `dist/` oficiálním Pages artifact deploymentem. Běží po push do `main` či `feat/factory-empire-m0`; lze ho spustit i ručně.
+Workflow `.github/workflows/pages.yml` ověřuje lint, testy a build a nasazuje `dist/` oficiálním Pages artifact deploymentem. Běží po push do `main`; lze ho spustit i ručně. Ochrana prostředí github-pages povoluje pouze main.
 
-**Tato iterace se podle uživatelského pokynu nenahrává.** Následující postup je připravený pro pozdější schválené nasazení. Samotné lokální build/test nic nepublikují.
+Verze 0.6.1 je připravená pro uživatelem autorizované nasazení. Lokální build/test nic nepublikují; publikaci provádí workflow po push do main.
 
 První zapnutí v GitHubu:
 
 1. Otevřete repozitář → **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-2. V **Settings → Environments → github-pages** případně povolte nasazování z větve `feat/factory-empire-m0` (ochrana může ve výchozím stavu povolovat jen hlavní větev).
-3. Otevřete **Actions → Deploy Factory Empire to Pages** a zopakujte poslední běh. Pro ruční Run workflow musí být workflow i ve výchozí větvi; před sloučením použijte Re-run jobs u běhu vytvořeného pushem.
+2. V **Settings → Environments → github-pages** ponechte povolenou větev `main`. Pracovní větve nasazení nespouštějí.
+3. Otevřete **Actions → Deploy Factory Empire to Pages** a pro ruční spuštění zvolte **Run workflow → main**. Případně zopakujte poslední běh z main přes Re-run jobs.
 4. Po zeleném kroku deploy otevřete URL z jeho výstupu, obvykle `https://panblb69-design.github.io/gamev2/`.
 
 Pokud repozitář nemá Pages dostupné kvůli tarifu/viditelnosti, GitHub to uvede v Settings → Pages; dostupnost nelze předpokládat. Vite má relativní `base: './'`, takže assets fungují i pod `/gamev2/`. Build obsahuje lokální assets; offline první načtení/PWA cache není součástí M0. Uložené hry jsou vázané na prohlížeč a origin: pro přenos mezi lokální a publikovanou verzí použijte export/import JSON.
@@ -85,3 +85,7 @@ Volitelně pořiďte lis, lamelovací automat a dělení trubek a vyrábějte ko
 - [Výsledky ověření](docs/VALIDATION.md)
 - [Akceptace M0–M6](docs/MILESTONE_ACCEPTANCE.md)
 - [Stav a otevřené úkoly](docs/STATUS.md), [changelog](CHANGELOG.md)
+
+## První zakázka ve verzi 0.6.1
+
+Vlevo je kontextový průvodce podle skutečného stavu závodu. Nákup všech vstupů pro HX-001 proveďte přes MRP; nemusíte přepisovat každou položku. MRP objedná přesný počet bez rezervy na neshody. Po expedici průvodce vysvětlí pohledávku a zbývající dny do inkasa. Mzdy pokračují i při čekání na zákazníka, proto malá první zakázka může skončit provozní ztrátou. Ceny a výrobní časy 0.6.0 se neměnily.

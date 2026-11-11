@@ -384,3 +384,18 @@ aside label {
     font-size: 11px;
   }
 }
+.first-order {
+  border: 1px solid #a7854d;
+  border-radius: 6px;
+  padding: 12px;
+  background: #26343b;
+  margin-top: 0;
+}
+.first-order h3 {
+  color: #edc986;
+  margin-top: 0;
+}
+#buy-quote {
+  color: #edc986;
+  font-size: 11px;
+}

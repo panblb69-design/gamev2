@@ -1,4 +1,4 @@
-# Stav 0.6.0 — M0–M6
+# Stav 0.6.1 — M0–M6 a první zakázka
 
 M0–M6 mají implementovaný a testovaný výchozí rozsah. Přesnou mapu funkcí na důkazy a konkrétní herní zjednodušení obsahuje [MILESTONE_ACCEPTANCE.md](MILESTONE_ACCEPTANCE.md).
 
@@ -20,7 +20,7 @@ Formát v3 migruje validní prázdný M0 v1 i M1 v2. Ukládá probíhající vý
 
 ## Doručení
 
-Tato iterace zůstává lokálně podle výslovného pokynu uživatele. Nespouštět push ani nasazení jako součást dokončení práce. Stávající Pages workflow se aktivuje až případným pozdějším pushem; lokální úspěšný build sám nic nepublikuje.
+Verze 0.6.0 byla připravena lokálně bez nasazení. Dne 2026-11-11 uživatel následně autorizoval nahrání, nasazení a kontrolu hratelnosti. Verze 0.6.1 přidává průvodce první zakázkou a přesnou nabídku nákupu. Nasazení používá main, protože prostředí github-pages pracovní větev odmítá. Lokální build sám nic nepublikuje; ověřit výsledek vzdáleného workflow.
 
 ## Další možné rozšíření mimo uzavřený rozsah
 

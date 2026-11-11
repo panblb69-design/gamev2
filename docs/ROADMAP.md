@@ -24,4 +24,4 @@ Výchozí implementace zadání v0.1 je uzavřená přes M0–M6. Akceptace a om
 2. Jemnější doprava po segmentech a jednotlivé skladové pozice.
 3. Nový fyzický výrobek s ověřeným BOM/procesem a delší benchmarky.
 
-Nasazení této iterace je odložené podle uživatelského požadavku. Nepushovat automaticky po úspěšných testech.
+Verze 0.6.0 byla dokončena lokálně podle původního pokynu. Uživatel následně autorizoval publikaci a herní kontrolu; 0.6.1 obsahuje první UX opravy. Další balancovací změny vycházejí z odehraných zakázek, nikoli z automatického navyšování tržeb.

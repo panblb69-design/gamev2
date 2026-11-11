@@ -48,3 +48,11 @@ export const money = (minor: number) =>
     currency: "CZK",
     maximumFractionDigits: 0,
   }).format(minor / 100);
+
+export const moneyExact = (minor: number) =>
+  new Intl.NumberFormat("cs-CZ", {
+    style: "currency",
+    currency: "CZK",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(minor / 100);

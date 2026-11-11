@@ -1,8 +1,9 @@
+import { firstOrderHint } from "./first-order";
 import { FactoryEngine, type FactoryCommand } from "../manufacturing/engine";
 import { OPERATIONS, COSTS, PURCHASE_PRICES } from "../manufacturing/catalog";
 import { items, machines } from "../data/catalog";
 import type { Simulation } from "../core/simulation";
-import { money } from "./text";
+import { money, moneyExact } from "./text";
 export class FactoryUI {
   private placement: string | null = null;
   private rotation: 0 | 90 = 0;
@@ -137,15 +138,37 @@ export class FactoryUI {
     );
     const guide = document.createElement("details");
     guide.innerHTML =
-      "<summary>Jak vyrobit první výparník</summary><p>1. Pozemek → hala → skladník a operátoři.<br>2. Umístěte mytí, montáž, heliový tester, povrchovou úpravu a balení (mezi stroji nechte uličku).<br>3. Každému připojte elektřinu a vzduch, přiřaďte operátora a zapněte výrobu.<br>4. Nakupte 56 desek, 27 lamel, 2 výztuhy, vstupní a výstupní trubku, blok; dále vodu (4 l/kus), čistič (.01 l), helium (.001 m³), chemii (.01 l), 2 záslepky a obal.<br>5. Po dodání skladník dopraví vstupy k mytí. Očištěná sada → montáž → jádro do skladu. Pošlete jej do kooperace.<br>6. Za 2 dny se vrátí pájené jádro: test → povrch → balení. Neshodný kus jde do karantény. Při poruše najměte údržbáře, nakupte sadu náhradních dílů a v kontextu stroje spusťte opravu.<br>7. Přijměte zakázku, vyrobte celé množství a expedujte. Inkaso až 30 dní po expedici.<br>Volitelně vyrábějte komponenty ze surovin na lisu, lamelovacím a trubkovém stroji. Na jednu sadu: 2.1 kg pájecího svitku, .5 kg pásu, .15 kg plechu a 1.1 m trubky. Časy a spotřeby jsou neověřené herní hodnoty.</p>";
+      "<summary>Jak vyrobit první výparník</summary><p>1. Pozemek → hala → skladník a operátoři.<br>2. Umístěte mytí, montáž, heliový tester, povrchovou úpravu a balení (mezi stroji nechte uličku).<br>3. Každému připojte elektřinu a vzduch, přiřaďte operátora a zapněte výrobu.<br>4. Pro zakázku přijměte HX-001 a přes Řízení závodu → Plánování a obchod připravte a uvolněte MRP (výrobu komponent ze surovin ponechte vypnutou). Ruční nákup na jeden kus: 56 desek, 27 lamel, 2 výztuhy, vstupní a výstupní trubku, blok; dále vodu (4 l/kus), čistič (.01 l), helium (.001 m³), chemii (.01 l), 2 záslepky a obal.<br>5. Po dodání skladník dopraví vstupy k mytí. Očištěná sada → montáž → jádro do skladu. Pošlete jej do kooperace.<br>6. Za 2 dny se vrátí pájené jádro: test → povrch → balení. Neshodný kus jde do karantény. Při poruše najměte údržbáře, nakupte sadu náhradních dílů a v kontextu stroje spusťte opravu.<br>7. Přijměte zakázku, vyrobte celé množství a expedujte. Inkaso až 30 dní po expedici.<br>Volitelně vyrábějte komponenty ze surovin na lisu, lamelovacím a trubkovém stroji. Na jednu sadu: 2.1 kg pájecího svitku, .5 kg pásu, .15 kg plechu a 1.1 m trubky. Časy a spotřeby jsou neověřené herní hodnoty.</p>";
     document.querySelector("aside")!.prepend(guide);
+    const progress = document.createElement("section");
+    progress.innerHTML =
+      '<h3 id="first-order-title"></h3><p id="first-order-body"></p>';
+    progress.className = "first-order";
+    document.querySelector("aside")!.prepend(progress);
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         this.placement = null;
         this.mode();
       }
     });
+    const quote = document.createElement("p");
+    quote.id = "buy-quote";
+    this.el("buy-quantity").after(quote);
+    this.el("buy-item").addEventListener("change", () => this.purchaseQuote());
+    this.el("buy-quantity").addEventListener("input", () =>
+      this.purchaseQuote(),
+    );
     this.refresh();
+  }
+  private purchaseQuote() {
+    const id = (this.el("buy-item") as HTMLSelectElement).value,
+      qty = Number((this.el("buy-quantity") as HTMLInputElement).value),
+      price = PURCHASE_PRICES[id],
+      unit = items.find((i) => i.id === id)?.unit ?? "";
+    this.el("buy-quote").textContent =
+      Number.isFinite(qty) && qty > 0 && price !== undefined
+        ? `${qty} ${unit} × ${moneyExact(price)} = ${moneyExact(Math.round(qty * price))}. Platba při objednání.`
+        : "Zadejte kladné množství.";
   }
   private mode() {
     this.el("placement-mode").textContent = this.placement
@@ -231,6 +254,10 @@ export class FactoryUI {
       );
   }
   refresh() {
+    const hint = firstOrderHint(this.sim.state);
+    this.el("first-order-title").textContent = hint.title;
+    this.el("first-order-body").textContent = hint.body;
+    this.purchaseQuote();
     const s = this.sim.state,
       e = new FactoryEngine(s);
     this.el("staff").textContent =

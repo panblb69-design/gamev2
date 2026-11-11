@@ -31,3 +31,11 @@ Build hlásí neblokující upozornění na komentářové anotace uvnitř Zod; 
 ## Doručení
 
 Verze nebyla pushnuta ani nasazena. Předchozí obsah GitHub Pages touto iterací nebyl změněn.
+
+## Ověření 0.6.1 (2026-11-11)
+
+- Lint, typecheck a produkční build prošly.
+- 69/69 jednotkových a integračních testů, žádné přeskočené.
+- 6/6 browser testů nad produkčním dist, žádné přeskočené. Nový scénář projde první zakázkou výhradně přes viditelné ovládání: stavba, obsluha, MRP, placená rezerva komponent, výroba, kooperace a expedice 10 dobrých kusů. Ověří následnou pohledávku a vysvětlení splatnosti. Inkaso ve splatnosti nadále ověřuje headless kampaň.
+- Balanc 0.6.0 se neměnil; 0.6.1 zlepšuje vedení hráče a přesný cenový součet.
+- Příčina selhávajících publikací pracovní větve byla ověřena na GitHub Actions: github-pages dovoluje pouze main. Nasazení používá tuto povolenou větev; úspěch vzdáleného běhu se ověřuje samostatně.

@@ -29,3 +29,12 @@
 - Jádro běží v dedikovaném Web Workeru, má indexy a dávkování/dirty updates; benchmark 144 stanic / 200 lidí / 5000 šarží.
 - Save v3, migrace v1/v2, manažerské UI a integrační kampaň všech etap.
 - Žádný push ani deployment v této iteraci dle uživatelského požadavku. Přesné hranice v docs/MILESTONE_ACCEPTANCE.md.
+
+## 0.6.1 — první zakázka a publikace (2026-11-11)
+
+- Kontextový průvodce od koupě pozemku po inkaso: bere skutečný stav, upozorní na poruchu a vysvětlí pohledávku i pokračující mzdy.
+- Úvodní postup používá existující MRP pro nákup celé zakázky; ruční zadávání každé komponenty zůstává volitelné.
+- Nákupní panel ukazuje jednotku, jednotkovou cenu a přesnou částku včetně haléřů ještě před objednáním.
+- Browser test celé první zakázky přes viditelné UI včetně skutečné výroby, kooperace, oprav a expedice.
+- Pages workflow se spouští automaticky jen z main, podle existující ochrany github-pages. Publikace z pracovní větve byla tímto pravidlem odmítána.
+- Beze změn cen a výrobního balancu; další úpravy balancu potřebují více odehraných zakázek.
